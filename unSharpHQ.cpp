@@ -62,12 +62,11 @@ public:
 		if( thres<0 || thres>99 || MIN<0 || MIN>4 || MAX<0 || MAX>99)
 			env->ThrowError("UnsharpHQ(THRESHOLD=20, SHARPSTR=4.0 , SMOOTH=0.5 , SHOW=FALSE)  \n "
 			"        USAGE:\n"
-			"      THRES [ 0.0 , 99.0]\n"
+			"  THRESHOLD [ 0.0 , 99.0]\n"
 			"   SHARPSTR [ 0.0 , 99.0]\n"
-			" DENOISESTR [ 0.0 ,  4.0]\n"
+			"     SMOOTH [ 0.0 ,  4.0]\n"
 		);
-		if( mode >=2 )
-			env->ThrowError("MODE is 0 or 1");
+		if( mode >=2 ) env->ThrowError("MODE is 0 to 1");
 
 	}
 
@@ -88,8 +87,7 @@ PVideoFrame __stdcall UnsharpHQ::GetFrame(int n, IScriptEnvironment* env) {
 		int rowsize = dst->GetRowSize(PLANAR_Y);  
 		int height = dst->GetHeight(PLANAR_Y);
 
-		if (mode==0) FieldUnSharpY(dstp, srcp, rowsize,height,src_pitch,dst_pitch,(float)thres,-(MIN+1.0f),MAX+1.0f,show,mode);
-		else FieldUnSharpY(dstp, srcp, rowsize,height,src_pitch,dst_pitch,(float)thres,-MIN,MAX,show,mode);
+		FieldUnSharpY(dstp, srcp, rowsize,height,src_pitch,dst_pitch,(float)thres,-MIN,MAX,show,mode);
 	
 		//- - - - - - - - U - - - - - - - - - -  
 		

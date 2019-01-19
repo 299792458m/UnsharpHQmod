@@ -20,7 +20,7 @@
     
 #include "math.h"
 
-#define PRECISION 2 //osea 4
+#define PRECISION 3 //osea 4
 #define curva 30
 
 
@@ -37,45 +37,77 @@ void FieldUnSharpY(unsigned char* dstp,const unsigned char* srcp
 	__int16 ocho = (1<<PRECISION);
 	__int16 OCHO[4]; for (int i=0;i<4;i++) OCHO[i]= ocho;
 	
-	//MIN = -(SMOOTH+1.0)で、MAX = SHAPSTR+1.0になってる。 おそらく、±1の区間はfucion出力が0になるから、その分伸ばす意図？→mode1では伸長を止める
+	//MIN = -(SMOOTH+1.0)で、MAX = SHAPSTR+1.0になってる
 
 	double giro,atanMIN,atanMAX,A,S;
 	__declspec(align(16)) __int16 funcion[256];
-	
-	if (mode==0){
+	//volatile double test[256];
+	float fmin,fmax;	//MIN/MAXは1ずつ拡張された値が渡される→呼び出し元を変更して拡張しないようにした 必要に応じて↓で調整
+
+
+	if (mode==0){	//org互換
+		fmin=MIN-1.0f;
+		fmax=MAX+1.0f;
+
 		giro = thres;
 		atanMIN = atan(0-giro/curva);
 		atanMAX = atan(256-giro/curva);
-		A= (MAX-MIN) / (atanMAX-atanMIN) ;
-		S= MIN - A*atanMIN ;
+		A= (fmax-fmin) / (atanMAX-atanMIN) ;
+		S= fmin - A*atanMIN ;
 	
 		giro= giro - tan(-S/A)*curva;
 		atanMIN = atan(0-giro/curva);
 		atanMAX = atan(256-giro/curva);
-		A= (MAX-MIN) / (atanMAX-atanMIN) ;
-		S= MIN - A*atanMIN ;
+		A= (fmax-fmin) / (atanMAX-atanMIN) ;
+		S= fmin - A*atanMIN ;
 
 		for (int i=0;i<256;i++){
-			funcion[i]= (__int16) A*atan( ((float)i -giro) / curva  ) + S;	//shortはS以外に掛かる バグ？
-		
+			funcion[i]= (__int16)(((__int16) A*atan( ((float)i -giro) / curva  ) + S))*ocho/4;	//shortはS以外に掛かる バグ？ 重みを変更したため以前と互換を保つために奇数はintで切り捨ててる
+			//test[i] = (A*atan( ((float)i -giro) / curva  ) + S)*ocho/4;
 		}
 	}
-	else{	//mode=1
+	//else if (mode==1){	//i==giroで0になるように 出力はroundしてるのでちょっと微妙・・・
+	//	fmin=MIN*ocho/4-0.49999f;
+	//	fmax=MAX*ocho/4;
+
+	//	giro = thres;
+	//	atanMIN = atan((0-giro)/curva);			//0なので括弧でくくっても同じだけど
+	//	atanMAX = atan((255-giro)/curva);		//funcionが(i-giro)/curvであることを考えると、ここも(i-giro)が正しい fncionもgiro/curvにするなら正しいが・・・ あと、255までじゃね？
+	//	A= (fmax-fmin) / (atanMAX-atanMIN) ;		//(atanMIN,atanMAX)→(MIN,MAX)の傾き
+	//	S= fmin - A*atanMIN ;					//(atanMIN,atanMAX)→(MIN,MAX)のオフセット
+
+	//	for (int ii=0;ii<8;ii++){				//i=giroでfuncionが0になるように繰り返し演算
+	//		giro= thres - tan(-S/A)*curva;	
+	//		atanMIN = atan((0-giro)/curva);
+	//		atanMAX = atan((255-giro)/curva);
+	//		A= (fmax-fmin) / (atanMAX-atanMIN) ;
+	//		S= fmin - A*atanMIN ;
+	//	}
+	//	for (int i=0;i<256;i++){
+	//		funcion[i]  = (__int16)round( A*atan( (i -giro) / curva  ) + S );	//こっちが正しいと思う
+	//		//test[i]  = ( A*atan( (i -giro) / curva  ) + S );
+	//	}
+	//}
+	else if (mode==1){	//i==giroで1になるようにmode1をオフセットしてそれっぽくしてるが、形はi=giroでatan(0)の形になってる(smooth側があまり考慮されてない)
+		fmin=MIN*ocho/4-0.99999f;	//-1.0にすると演算精度上-1.0001とかになるので
+		fmax=MAX*ocho/4;
+
 		giro = thres;
 		atanMIN = atan((0-giro)/curva);			//0なので括弧でくくっても同じだけど
 		atanMAX = atan((255-giro)/curva);		//funcionが(i-giro)/curvであることを考えると、ここも(i-giro)が正しい fncionもgiro/curvにするなら正しいが・・・ あと、255までじゃね？
-		A= (MAX-MIN) / (atanMAX-atanMIN) ;		//(atanMIN,atanMAX)→(MIN,MAX)の傾き
-		S= MIN - A*atanMIN ;					//(atanMIN,atanMAX)→(MIN,MAX)のオフセット
+		A= (fmax-fmin) / (atanMAX-atanMIN) ;		//(atanMIN,atanMAX)→(MIN,MAX)の傾き
+		S= fmin - A*atanMIN -1.0;					//(atanMIN,atanMAX)→(MIN,MAX)のオフセット
 
-		for (int ii=0;ii<8;ii++){				//i=giroでfuncionが0になるように繰り返し演算
+		for (int ii=0;ii<8;ii++){				//i=giroでfuncionが1になるように繰り返し演算
 			giro= thres - tan(-S/A)*curva;	
 			atanMIN = atan((0-giro)/curva);
 			atanMAX = atan((255-giro)/curva);
-			A= (MAX-MIN) / (atanMAX-atanMIN) ;
-			S= MIN - A*atanMIN ;
+			A= (fmax-fmin) / (atanMAX-atanMIN) ;
+			S= fmin - A*atanMIN -1.0;
 		}
 		for (int i=0;i<256;i++){
-			funcion[i]  = (__int16)round( A*atan( (i -giro) / curva  ) + S );	//こっちが正しいと思う
+			funcion[i]  = (__int16)(A*atan( (i -giro) / curva  ) + S +1.0);
+			//test[i]  = ( A*atan( (i -giro) / curva  ) + S +1.0);
 		}
 	}
 
@@ -95,7 +127,7 @@ void FieldUnSharpY(unsigned char* dstp,const unsigned char* srcp
 	uc AVGs[8];
 	uc DIFs[8];
 
-	for (int h=2; h < height-1; h++){
+	for (int h=2; h < height-2; h++){
 #ifdef _WIN64	//最適化はしてない
 		for (w=2;w<=rowsize-2;w++){
 			int avrg,diff,A,B;
@@ -111,20 +143,20 @@ void FieldUnSharpY(unsigned char* dstp,const unsigned char* srcp
 			diff = min(max(diff,0),255);
 
 			B = funcion[diff];
-			A = B + ocho;
+			A = B + ocho;		// (1+B/ocho)*ocho
 
 			dstp[w] =  min(max( (row2[w] * A -avrg * B) / ocho, 0),255);
 		}
 		dstp[0]=row2[0];			//1,2列目はソースをコピー
 		dstp[1]=row2[1];
-		dstp[rowsize-1]=row2[rowsize-1];			//last-1,last列はソースをコピー
-		dstp[rowsize]=row2[rowsize];
+		dstp[rowsize-2]=row2[rowsize-2];			//last-1,last列はソースをコピー
+		dstp[rowsize-1]=row2[rowsize-1];
 
 #else
 		//0, 1 , height-1 , height, los copio
 		dstp[0]=row2[0];			//1,2列目はソースをコピー
 		dstp[1]=row2[1];
-		for ( w=2; w < rowsize-1  ; w+=8){
+		for ( w=2; w < rowsize-2  ; w+=8){
 
 		//		- - - - -		- - o - -
 		//		- o o o -		- o - o -
@@ -344,7 +376,7 @@ void FieldUnSharpY(unsigned char* dstp,const unsigned char* srcp
 					pmullw xmm1, xmm4;
 					//xmm2 = AVG * B
 					pmullw xmm2, xmm5;				
-					//xmm1 = Z0 *A - AVG *B (con saturacion)
+					//xmm1 = Z0 *A - AVG *B (con saturacion)	dst=org + funcion[diff] *(org-avr)/ocho = ( org*(ocho + funcion[diff]) - avr*funcion[diff] )	/ocho
 					psubw  xmm1 , xmm2;
 					//divido por 4 (shift 2 en ints 16) y desempaco a 8
 					psraw xmm1 , PRECISION;
@@ -357,8 +389,8 @@ void FieldUnSharpY(unsigned char* dstp,const unsigned char* srcp
 
 		}
 		//copio los dos ultimos pixels
-		dstp[rowsize-1]=row2[rowsize-1];			//last-1,last列はソースをコピー
-		dstp[rowsize]=row2[rowsize];
+		dstp[rowsize-2]=row2[rowsize-2];			//last-1,last列はソースをコピー
+		dstp[rowsize-1]=row2[rowsize-1];
 #endif
 
 		row0=row1;
