@@ -3,17 +3,9 @@
 ################################################################################
 
 /.vs
-/Release/unsharpHQ.tlog
-/Release/vc141.pdb
-/Release/unsharpHQ.pdb
-/Release/unSharpHQ.obj
-/Release/unsharpHQ.log
-/Release/unsharpHQ.lib
-/Release/unsharpHQ.ipdb
-/Release/unsharpHQ.iobj
-/Release/unsharpHQ.exp
-/Release/unsharpHQ.Build.CppClean.log
-/Release/unSharpHQ.asm
-/パフォーマンス1.psess
+/Release
+/*.psess
 /unsharpHQ.vcxproj.user
 /unsharpHQ.vcxproj.filters
+/Debug
+/rep

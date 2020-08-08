@@ -39,38 +39,41 @@ class UnsharpHQ : public GenericVideoFilter {
 	int thres;
 	bool show;
 	int mode;
+	bool lsb_in_flag, lsb_out_flag;
 
 public:
-	UnsharpHQ(PClip _child,int , float ,float ,bool ,int, IScriptEnvironment* env);
+	UnsharpHQ(PClip _child,int , float ,float ,bool ,int, bool,bool,IScriptEnvironment* env);
 	~UnsharpHQ();
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 };
 
 
 
-	UnsharpHQ::UnsharpHQ(PClip _child,int _thres,float _MAX,float _MIN,bool _show,int _mode,IScriptEnvironment* env) :
-	GenericVideoFilter(_child) {
-		thres = _thres;
-		MIN = _MIN;
-		MAX = _MAX;
-		show = _show;
-		mode = _mode;
+UnsharpHQ::UnsharpHQ(PClip _child,int _thres,float _MAX,float _MIN,bool _show,int _mode, bool _lsb_in_flag, bool _lsb_out_flag, IScriptEnvironment* env) :
+GenericVideoFilter(_child) {
+	thres = _thres;
+	MIN = _MIN;
+	MAX = _MAX;
+	show = _show;
+	mode = _mode;
+	lsb_in_flag = _lsb_in_flag;
+	lsb_out_flag = _lsb_out_flag;
 		
-		if( !vi.IsYV12() )
-			env->ThrowError("UnSharpHQ supports YV12 only");
+	if( !vi.IsYV12() )
+		env->ThrowError("UnSharpHQ supports YV12 only");
 
-		if( thres<0 || thres>99 || MIN<0 || MIN>4 || MAX<0 || MAX>99)
-			env->ThrowError("UnsharpHQ(THRESHOLD=20, SHARPSTR=4.0 , SMOOTH=0.5 , SHOW=FALSE)  \n "
-			"        USAGE:\n"
-			"  THRESHOLD [ 0.0 , 99.0]\n"
-			"   SHARPSTR [ 0.0 , 99.0]\n"
-			"     SMOOTH [ 0.0 ,  4.0]\n"
-		);
-		if( mode >=2 ) env->ThrowError("MODE is 0 to 1");
+	if( thres<0 || thres>99 || MIN<0 || MIN>4 || MAX<0 || MAX>99)
+		env->ThrowError("UnsharpHQ(THRESHOLD=20, SHARPSTR=4.0 , SMOOTH=0.5 , SHOW=FALSE)  \n "
+		"        USAGE:\n"
+		"  THRESHOLD [ 0.0 , 99.0]\n"
+		"   SHARPSTR [ 0.0 , 99.0]\n"
+		"     SMOOTH [ 0.0 ,  4.0]\n"
+	);
+	if( mode >=2 ) env->ThrowError("MODE is 0 to 1");
 
-	}
+}
 
-	UnsharpHQ::~UnsharpHQ() {}
+UnsharpHQ::~UnsharpHQ() {}
 
 
 PVideoFrame __stdcall UnsharpHQ::GetFrame(int n, IScriptEnvironment* env) {
@@ -125,10 +128,14 @@ AVSValue __cdecl Create_UnsharpHQ(AVSValue args, void* user_data, IScriptEnviron
 		,(float)args[3].AsFloat(smoot_str)
 		,args[4].AsBool(false)
 		,args[5].AsInt(0)
+		,args[6].AsBool(false)
+		,args[7].AsBool(false)
 	, env);
 }
 
-extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env) {
+const AVS_Linkage* AVS_linkage = 0;
+extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors) {
+	AVS_linkage = vectors;
     env->AddFunction("UnsharpHQ", "c[THRESHOLD]i[SHARPSTR]f[SMOOTH]f[SHOW]b[MODE]i", Create_UnsharpHQ, 0);
 
     // c - Video Clip

@@ -40,9 +40,21 @@ Unsharphq(20,15.0)    #Very strong sharp.
 Unsharphq(debug=true) #Run in debug mode.
 
 
-mod 181224
-* MODE	:default=0
-		:1	バグフィックス版 だけどパラメータの重み(効果)が全部変わるのでモードは分けてる
+--------------------------------------------------------------------------
+mod by 299792458m
+
+mod 181224	いろいろ
+mod 190119	ループの範囲を修正
+			補正重みを4→8に(これによりmode0でも出力が微妙に変更される)
+			mode1での補正重みを中央点と8近傍の差分がTHRESHOLDの時に1になるように修正
+
+
+
+
+modのメモ
+* MODE	:0=default(従来相当)
+		:1	mod版 だけどパラメータの効果が全部変わるのでモードは分けてる
+		
 元々の仕様説明
 ■8近傍点からフィルタをかける
 - - i - -
@@ -53,7 +65,7 @@ l - X - m
 
 dst=org + funcion[diff] *(org-avr)/ocho；
 (より正確にはdst=( org*(ocho + funcion[diff]) - avr*funcion[diff]) )/ocho;)
- ocho:重み 内部で4が使われている(以前のバージョンでは16だったらしい)
+ ocho:重み 内部で4が使われている→8に変更(以前のバージョンでは16だったらしい)
  diff=sum(|X-y|) y=i,j,k,..p
  avr=sum(y)/8 y=i,j,k,..p
 
