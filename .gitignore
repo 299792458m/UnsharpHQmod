@@ -4,6 +4,7 @@
 
 /.vs
 /Release
+/x64
 /*.psess
 /unsharpHQ.vcxproj.user
 /unsharpHQ.vcxproj.filters
