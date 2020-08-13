@@ -1,6 +1,6 @@
 # UnsharpHQmod
-a fork of list's UnsharpHQ
-  UnsharpHQ is a video plugin for Avisytnh 2.5x.
+a fork of list's UnsharpHQ  
+  UnsharpHQ is a video plugin for Avisynth
 
 ## PARAMETERS
 (All parameters are optional).
@@ -23,7 +23,6 @@ Unsharphq(20,15.0)    #Very strong sharp.
   - Avisynth2.6+化
   - HBD(8-16 YUVのみ)対応＋AVX2最適化、パラメータにopt追加
   - MODEのデフォルト値を1に変更(MODE=0にするとver0.5のパラメータと互換ありのはず)
-  - HBD時のshowを無効化
   - asmのintrinsic化
 - mod 190119
   - ループの範囲を修正
