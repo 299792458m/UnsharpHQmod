@@ -208,16 +208,16 @@ void FieldUnSharpY_HBD_CAL_AVX2(uint16_t* dstp, int32_t* funcion, int &w,int wid
 
 		__m256i ymm0, ymm1;
 		ymm0 = _mm256_set1_epi32(ocho);				//ocho
-		auto B = _mm256_loadu_si256((__m256i*)Bs);	//B
-		auto A = _mm256_add_epi32(B, ymm0);			//A=B+ocho
+		auto B = _mm256_loadu_si256((__m256i*)Bs);	//B=funcion[diff]	マイナスになりうる
+		auto A = _mm256_add_epi32(B, ymm0);			//A=funcion[diff]+ocho
 		xmm0 = _mm_loadu_si128((const __m128i*)(row2 + w));	//X(中央値)
 		auto X = _mm256_cvtepu16_epi32(xmm0);
 		ymm0 = _mm256_mullo_epi32(A, X);			//X * A			org*(ocho + funcion[diff]) 結果の下位32bitで十分？
 		ymm1 = _mm256_mullo_epi32(avrg, B);			//AVG * B		avr*funcion[diff]
 		ymm0 = _mm256_sub_epi32(ymm0, ymm1);		//X*A - AVG*B
 		ymm0 = _mm256_max_epi32(ymm0, _mm256_setzero_si256()); //マイナスになる時はここでリミットしないとおかしくなる
-		ymm0 = _mm256_srli_epi32(ymm0, PRECISION);	//dst=org + funcion[diff] *(org-avr)/ocho = ( org*(ocho + funcion[diff]) - avr*funcion[diff] )	/ocho
-		ymm0 = _mm256_min_epu32(ymm0, _mm256_set1_epi32(max_pixel_value));	//max_pixel_valueに飽和 0方向はpackusで実施
+		ymm0 = _mm256_srai_epi32(ymm0, PRECISION);	//dst=org + funcion[diff] *(org-avr)/ocho = ( org*(ocho + funcion[diff]) - avr*funcion[diff] )	/ocho
+		ymm0 = _mm256_min_epi32(ymm0, _mm256_set1_epi32(max_pixel_value));	//max_pixel_valueに飽和 0方向はpackusで実施
 		xmm0 = _mm_packus_epi32(_mm256_extracti128_si256(ymm0, 0), _mm256_extracti128_si256(ymm0, 1));	//int32 -> int16 with unsigned satulation
 		_mm_storeu_epi16((__m128i*)(dstp + w), xmm0);
 	}
@@ -225,7 +225,7 @@ void FieldUnSharpY_HBD_CAL_AVX2(uint16_t* dstp, int32_t* funcion, int &w,int wid
 
 void FieldUnSharpY_CAL_AVX2(uint8_t* dstp, int16_t* funcion, int& w, int width, const uint8_t* row0, const uint8_t* row1, const uint8_t* row2, const uint8_t* row3, const uint8_t* row4)
 {
-	int max_pixel_value = 255;
+	const int max_pixel_value = 255;
 
 	for (; w < width - 16; w += 16) {
 
@@ -318,16 +318,16 @@ void FieldUnSharpY_CAL_AVX2(uint8_t* dstp, int16_t* funcion, int& w, int width, 
 
 		__m256i ymm0, ymm1;
 		ymm0 = _mm256_set1_epi16(ocho);				//ocho
-		auto B = _mm256_loadu_si256((__m256i*)Bs);	//B
-		auto A = _mm256_add_epi16(B, ymm0);			//A=B+ocho
+		auto B = _mm256_loadu_si256((__m256i*)Bs);	//B=funcion[diff]	マイナスになりうる
+		auto A = _mm256_add_epi16(B, ymm0);			//A=funcion[diff]+ocho
 		xmm0 = _mm_loadu_si128((const __m128i*)(row2 + w));	//X(中央値)
 		auto X = _mm256_cvtepu8_epi16(xmm0);
 		ymm0 = _mm256_mullo_epi16(A, X);			//X * A			org*(ocho + funcion[diff]) 結果の下位32bitで十分？
 		ymm1 = _mm256_mullo_epi16(avrg, B);			//AVG * B		avr*funcion[diff]
 		ymm0 = _mm256_sub_epi16(ymm0, ymm1);		//X*A - AVG*B
 		ymm0 = _mm256_max_epi16(ymm0, _mm256_setzero_si256()); //マイナスになる時はここでリミットしないとおかしくなる
-		ymm0 = _mm256_srli_epi16(ymm0, PRECISION);	//dst=org + funcion[diff] *(org-avr)/ocho = ( org*(ocho + funcion[diff]) - avr*funcion[diff] )	/ocho
-		ymm0 = _mm256_min_epu16(ymm0, _mm256_set1_epi16(max_pixel_value));	//max_pixel_valueに飽和 0方向はpackusで実施
+		ymm0 = _mm256_srai_epi16(ymm0, PRECISION);	//dst=org + funcion[diff] *(org-avr)/ocho = ( org*(ocho + funcion[diff]) - avr*funcion[diff] )	/ocho
+		ymm0 = _mm256_min_epi16(ymm0, _mm256_set1_epi16(max_pixel_value));	//max_pixel_valueに飽和 0方向はpackusで実施
 		xmm0 = _mm_packus_epi16(_mm256_extracti128_si256(ymm0, 0), _mm256_extracti128_si256(ymm0, 1));	//int32 -> int16 with unsigned satulation
 		_mm_storeu_epi16((__m128i*)(dstp + w), xmm0);
 	}
@@ -433,17 +433,17 @@ void FieldUnSharpY_CAL_SSE2(uint8_t* dstp, int16_t* funcion, int& w, int width, 
 		}
 
 		xmm0 = _mm_set1_epi16(ocho);			//ocho
-		auto B = _mm_loadu_si128((__m128i*)Bs);	//B
-		auto A = _mm_add_epi16(B, xmm0);		//A=B+ocho
+		auto B = _mm_loadu_si128((__m128i*)Bs);	//B=funcion[diff]	マイナスになりうる
+		auto A = _mm_add_epi16(B, xmm0);		//A=funcion[diff]+ocho
 		xmm0 = _mm_loadu_si128((const __m128i*)(row2 + w));	//X(中央値)
 		auto X = _mm_unpacklo_epi8(xmm0, zero);
 		xmm0 = _mm_mullo_epi16(A, X);			//X * A			org*(ocho + funcion[diff]) 結果の下位16bitで十分？
 		xmm1 = _mm_mullo_epi16(avrg, B);		//AVG * B		avr*funcion[diff]
-		xmm0 = _mm_subs_epu16(xmm0, xmm1);		//X*A - AVG*B
-		//ymm0 = _mm_max_epi16(ymm0, _mm_setzero_si128()); //マイナスになる時はここでリミットしないとおかしくなるが、subsなので不要
-		xmm0 = _mm_srli_epi16(xmm0, PRECISION);	//dst=org + funcion[diff] *(org-avr)/ocho = ( org*(ocho + funcion[diff]) - avr*funcion[diff] )	/ocho
+		xmm0 = _mm_sub_epi16(xmm0, xmm1);		//X*A - AVG*B
+		xmm0 = _mm_max_epi16(xmm0, _mm_setzero_si128()); //マイナスになる時はここでリミットしないとおかしくなる
+		xmm0 = _mm_srai_epi16(xmm0, PRECISION);	//dst=org + funcion[diff] *(org-avr)/ocho = ( org*(ocho + funcion[diff]) - avr*funcion[diff] )	/ocho
 		//xmm0 = _mm_min_epu16(xmm0, _mm_set1_epi16(max_pixel_value));	//max_pixel_valueに飽和 0方向は不要
-		xmm0 = _mm_packus_epi16(xmm0, xmm0);	//int32 -> int16 with unsigned satulation
+		xmm0 = _mm_packus_epi16(xmm0, xmm0);	//int16 -> uint8 with unsigned satulation
 		_mm_storeu_si64((dstp + w), xmm0);
 
 	}
@@ -520,51 +520,7 @@ void FieldUnSharpY(unsigned char* dstp, const unsigned char* srcp
 	//MIN = -(SMOOTH+1.0)で、MAX = SHAPSTR+1.0になってる
 
 	__declspec(align(32)) func_t funcion[max_pixel_size];
-	/*
-	if (mode == 0) {	//org互換
-		fmin = MIN - 1.0f;
-		fmax = MAX + 1.0f;
 
-		giro = thres;
-		atanMIN = atan(0 - giro / curva);
-		atanMAX = atan(256 - giro / curva);
-		A = (fmax - fmin) / (atanMAX - atanMIN);
-		S = fmin - A * atanMIN;
-
-		giro = giro - tan(-S / A) * curva;
-		atanMIN = atan(0 - giro / curva);
-		atanMAX = atan(256 - giro / curva);
-		A = (fmax - fmin) / (atanMAX - atanMIN);
-		S = fmin - A * atanMIN;
-
-		for (int i = 0; i < 256; i++) {
-			funcion[i] = (__int16)(((__int16)A * atan(((float)i - giro) / curva) + S)) * ocho / 4;	//shortはS以外に掛かる バグ？ 重みを変更したため以前と互換を保つために奇数はintで切り捨ててる
-		}
-	}
-	else {	//i==giroで1になるようにmode1をオフセットしてそれっぽくしてるが、形はi=giroでatan(0)の形になってる(smooth側があまり考慮されてない)
-		fmin = MIN * ocho / 4 - 0.99999f;	//-1.0にすると演算精度上-1.0001とかになるので
-		fmax = MAX * ocho / 4;
-
-		giro = thres;
-		atanMIN = atan((0 - giro) / curva);			//0なので括弧でくくっても同じだけど
-		atanMAX = atan((max_pixel_value - giro) / curva);		//funcionが(i-giro)/curvであることを考えると、ここも(i-giro)が正しい fncionもgiro/curvにするなら正しいが・・・ あと、255までじゃね？
-		A = (fmax - fmin) / (atanMAX - atanMIN);		//(atanMIN,atanMAX)→(MIN,MAX)の傾き
-		S = fmin - A * atanMIN - 1.0;					//(atanMIN,atanMAX)→(MIN,MAX)のオフセット
-
-		for (int ii = 0; ii < bits_per_pixel; ii++) {				//i=giroでfuncionが1になるように繰り返し演算
-			giro = thres - tan(-S / A) * curva;
-			atanMIN = atan((0 - giro) / curva);
-			atanMAX = atan((max_pixel_value - giro) / curva);
-			A = (fmax - fmin) / (atanMAX - atanMIN);
-			S = fmin - A * atanMIN - 1.0;
-		}
-		//volatile double test[256];
-		for (int i = 0; i < max_pixel_size; i++) {
-			funcion[i] = (int16_t)(A * atan((i - giro) / curva) + S + 1.0);
-			//test[i]  = ( A*atan( (i -giro) / curva  ) + S +1.0);
-		}
-	}
-	*/
 	FieldUnSharpY_CALFUN<func_t, bits_per_pixel>(funcion, thres, MIN, MAX, mode);
 
 
