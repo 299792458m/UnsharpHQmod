@@ -13,10 +13,10 @@ Unsharphq()           #All by default, this is useful in most cases.
 Unsharphq(20,15.0)    #Very strong sharp.
 --------------------------------------------------------------------------
 ### modのメモ
-* MODE	:0(従来相当)
-		:1=default mod版のデフォルト だけどパラメータの効果が全部変わる
+* MODE	:0(従来相当)  
+	:1=mod版のデフォルト だけどパラメータの効果が全部変わるので従来と同じパラメータを使いたい場合は0に
 * SHOW	:いまいち使い方がわからないのでHBDではちゃんとした対応をしていない
-* OPT	:0=auto 1=compiler optimazation 2:SSE2 3:AVX2
+* OPT	:最適化 0=auto 1=C 2:SSE2 3:AVX2
 		
 ### 変更履歴 mod by 299792458m
 - mod 200814
