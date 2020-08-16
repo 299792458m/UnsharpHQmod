@@ -13,16 +13,15 @@ Unsharphq()           #All by default, this is useful in most cases.
 Unsharphq(20,15.0)    #Very strong sharp.
 --------------------------------------------------------------------------
 ### modのメモ
-* MODE	:0(従来相当)  
-	:1=mod版のデフォルト だけどパラメータの効果が全部変わるので従来と同じパラメータを使いたい場合は0に
-* SHOW	:いまいち使い方がわからないのでHBDではちゃんとした対応をしていない
+* MODE	:0 default(従来相当)  
+		:1 mod版で追加 パラメータの効果が変わるので分けてる
+* SHOW	:いまいち使い方がわからないのでHBDではちゃんとした対応をしていない opt=1の時のみ対応
 * OPT	:最適化 0=auto 1=C 2:SSE2 3:AVX2
 		
 ### 変更履歴 mod by 299792458m
-- mod 200814
+- mod 200816
   - Avisynth2.6+化
   - HBD(8-16 YUVのみ)対応＋AVX2最適化、パラメータにopt追加
-  - MODEのデフォルト値を1に変更(MODE=0にするとver0.5のパラメータと互換ありのはず)
   - asmのintrinsic化
 - mod 190119
   - ループの範囲を修正
