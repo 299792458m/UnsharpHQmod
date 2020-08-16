@@ -22,7 +22,6 @@
 
 #define PRECISION 3 //osea 4
 #define curva 30
-
 #define VERDE1 100
 #define VERDE2 100
 
@@ -30,8 +29,6 @@
 #define threshold 20
 #define sharp_str 4
 #define smoot_str .5
-
-const int ocho = 1 << PRECISION;	//意味不明 不要にできるのでは？
 
 
 void Fieldcopy(void *dest, const void *src, size_t count, 
