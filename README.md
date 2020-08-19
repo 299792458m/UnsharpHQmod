@@ -13,10 +13,14 @@ Unsharphq()           #All by default, this is useful in most cases.
 Unsharphq(20,15.0)    #Very strong sharp.
 --------------------------------------------------------------------------
 ### modのメモ
+UnsharpHQ(THRESHOLD=64,SHARPSTR=2.5,SMOOTH=0,mode=1) #weak sharp I use like this
+#### added and changed parameters
 * MODE	:0 default(従来相当)  
-		:1 mod版で追加 パラメータの効果が変わるので分けてる
-* SHOW	:いまいち使い方がわからないのでHBDではちゃんとした対応をしていない opt=1の時のみ対応
-* OPT	:最適化 0=auto 1=C 2:SSE2 3:AVX2
+	:1 addded in mod(threshold, sharpstr,smooth parameter effects are little bit changed in this mode)  
+	at this mode,  SMOOTH=0 is good choice!  
+	mod版で追加 パラメータの効果が変わるので分けてる
+* SHOW	:may not work... いまいち使い方がわからないのでHBDではちゃんとした対応をしていない opt=1の時のみ対応
+* OPT	:optimization 最適化 0=auto 1=C 2:SSE2 3:AVX2
 		
 ### 変更履歴 mod by 299792458m
 - mod 200816
