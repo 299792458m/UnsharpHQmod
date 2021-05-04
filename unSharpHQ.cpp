@@ -599,6 +599,7 @@ class UnsharpHQ : public GenericVideoFilter {
 	int mode;
 	int opt;
 	int cpuf;
+	bool has_at_least_v8;
 
 public:
 	UnsharpHQ(PClip _child,int , float ,float ,bool ,int, int ,IScriptEnvironment* env);
@@ -640,6 +641,11 @@ GenericVideoFilter(_child) {
 	);
 	if( _mode >=2 ) env->ThrowError("MODE is 0 or 1");
 	if (_opt >= 4) env->ThrowError("MODE is 0 to 3");
+
+	has_at_least_v8 = true;
+	try { env->CheckVersion(8); }
+	catch (const AvisynthError&) { has_at_least_v8 = false; };
+
 }
 
 UnsharpHQ::~UnsharpHQ() {}
@@ -648,7 +654,7 @@ UnsharpHQ::~UnsharpHQ() {}
 PVideoFrame __stdcall UnsharpHQ::GetFrame(int n, IScriptEnvironment* env) {
 
 	PVideoFrame src = child->GetFrame(n, env);
-	PVideoFrame dst = env->NewVideoFrame(vi);
+	PVideoFrame dst = (has_at_least_v8) ? env->NewVideoFrameP(vi, &src) : env->NewVideoFrame(vi);
 	int bits_per_pixel = vi.BitsPerComponent();
 
 
